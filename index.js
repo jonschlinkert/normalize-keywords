@@ -11,16 +11,15 @@ var diff = require('arr-diff');
 var unique = require('unique-words');
 var reduce = require('reduce-object');
 var words = require('common-words');
+var sentence = require('sentence-case');
+var exclusions = require('./exclusions');
 
 
 module.exports = function(keywords, options) {
-  var opts = options || {};
+  var opts = options || {sanitize: true};
 
-  function common(arr) {
-    return reduce(words, function(acc, o) {
-      acc.push(o.word);
-      return acc;
-    }, arr || []);
+  if (opts.sanitize === true) {
+    keywords = uniq(sanitize(keywords));
   }
 
   keywords = keywords.concat(opts.add || []);
@@ -31,3 +30,52 @@ module.exports = function(keywords, options) {
     .filter(Boolean)
     .sort();
 };
+
+
+/**
+ * Get an array of the 100 most common english words
+ */
+
+function common(arr) {
+  return reduce(words, function(acc, o) {
+    return acc.concat(o.word);
+  }, arr || []);
+}
+
+
+/**
+ * Clean up empty values, sentences, and non-word characters
+ * that shouldn't polute the keywords.
+ *
+ * @param  {Array} `arr`
+ * @return {Array}
+ */
+
+function sanitize(arr) {
+  return arr.reduce(function(acc, words) {
+    return acc.concat(sentence(words)
+      .split(' ').filter(Boolean));
+  }, []);
+}
+
+
+/**
+ * Uniqueify keywords.
+ *
+ * @param  {Array} `arr`
+ * @return {Array}
+ */
+
+function uniq(arr) {
+  if (arr == null || arr.length === 0) {
+    return [];
+  }
+
+  return reduce(arr, function(acc, value) {
+    if (acc.indexOf(value) === -1 && exclusions.indexOf(value) === -1) {
+      acc.push(value);
+    }
+    return acc;
+  }, []);
+}
+
