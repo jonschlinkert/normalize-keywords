@@ -28,6 +28,11 @@ describe('normalize', function () {
     normalize(keywords, {omit: ['foo', 'bar']}).should.eql(['baz', 'fez', 'quux']);
   });
 
+  it('should make all words lowercase', function () {
+    var keywords = ['Foo', 'foo'];
+    normalize(keywords).should.eql(['foo']);
+  });
+
   it('readme example', function () {
     var keywords = ['foo', 'the bar', 'the foo be bar and quux'];
     normalize(keywords, {omit: ['foo']}).should.eql(['bar', 'quux']);

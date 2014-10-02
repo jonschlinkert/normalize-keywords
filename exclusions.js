@@ -6,5 +6,6 @@
 
 var alphabet = 'abcdefghijklmnopqrstuvwxzy'.split('');
 
-module.exports = ['var'].concat(alphabet);
+// Exclude single letters from keywords.
+module.exports = alphabet;
 

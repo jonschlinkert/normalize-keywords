@@ -38,8 +38,8 @@ module.exports = function(keywords, options) {
 
 function common(arr) {
   return reduce(words, function(acc, o) {
-    return acc.concat(o.word);
-  }, arr || []);
+    return acc.concat(o.word.toLowerCase());
+  }, arr || []).sort();
 }
 
 
@@ -54,7 +54,10 @@ function common(arr) {
 function sanitize(arr) {
   return arr.reduce(function(acc, words) {
     return acc.concat(sentence(words)
-      .split(' ').filter(Boolean));
+      .split(' ').filter(Boolean))
+      .map(function(word) {
+        return word.toLowerCase();
+      }).sort();
   }, []);
 }
 
@@ -71,9 +74,9 @@ function uniq(arr) {
     return [];
   }
 
-  return reduce(arr, function(acc, value) {
-    if (acc.indexOf(value) === -1 && exclusions.indexOf(value) === -1) {
-      acc.push(value);
+  return reduce(arr, function(acc, ele) {
+    if (acc.indexOf(ele) === -1 && exclusions.indexOf(ele) === -1) {
+      acc.push(ele);
     }
     return acc;
   }, []);
