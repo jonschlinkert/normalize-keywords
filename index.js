@@ -24,9 +24,19 @@ module.exports = function(keywords, options) {
   var keys = unique(keywords.slice());
   var omit = common(opts.omit);
 
-  return _.uniq(_.difference(keys, omit)
+  keywords = _.difference(keys, omit)
     .map(changeCase).filter(Boolean)
-    .sort());
+
+  // Clone the array and split words by dashes,
+  // then concat the results back into the array
+  var res = keywords.slice(0)
+    .reduce(function(acc, ele) {
+      acc = acc.concat(ele.split('-'));
+      return acc;
+    }, []);
+
+  return _.union(keywords, res)
+    .sort();
 };
 
 
