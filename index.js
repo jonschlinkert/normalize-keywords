@@ -7,16 +7,14 @@
 
 'use strict';
 
-var diff = require('arr-diff');
+var _ = require('lodash');
 var unique = require('unique-words');
-var reduce = require('reduce-object');
 var words = require('common-words');
-var sentence = require('sentence-case');
 var exclusions = require('./exclusions');
 
 
 module.exports = function(keywords, options) {
-  var opts = options || {sanitize: true};
+  var opts = _.extend({sanitize: true}, options);
 
   if (opts.sanitize === true) {
     keywords = uniq(sanitize(keywords));
@@ -26,9 +24,9 @@ module.exports = function(keywords, options) {
   var keys = unique(keywords.slice());
   var omit = common(opts.omit);
 
-  return diff(keys, omit)
-    .filter(Boolean)
-    .sort();
+  return _.uniq(_.difference(keys, omit)
+    .map(changeCase).filter(Boolean)
+    .sort());
 };
 
 
@@ -37,9 +35,30 @@ module.exports = function(keywords, options) {
  */
 
 function common(arr) {
-  return reduce(words, function(acc, o) {
+  return _.reduce(words, function(acc, o) {
     return acc.concat(o.word.toLowerCase());
   }, arr || []).sort();
+}
+
+
+/**
+ * Convert camelcase to slugs, remove leading and trailing
+ * dashes and whitespace. Convert underscores to dashes.
+ *
+ * @param  {String} `str`
+ * @return {String}
+ */
+
+function changeCase(str) {
+  if (str == null) return '';
+
+  return String(str)
+    .replace(/_/g, '-')
+    .replace(/([A-Z]+)/g, function (_, $1) {
+      return '-' + $1.toLowerCase();
+    })
+    .replace(/[^a-z-]+/g, '-')
+    .replace(/^[-\s]+|[-\s]+$/g, '');
 }
 
 
@@ -52,10 +71,9 @@ function common(arr) {
  */
 
 function sanitize(arr) {
-  return arr.reduce(function(acc, words) {
-    return acc.concat(sentence(words)
-      .split(' ').filter(Boolean))
-      .map(function(word) {
+  return _.reduce(arr, function(acc, words) {
+    return acc.concat(words.split(' ')
+      .filter(Boolean)).map(function(word) {
         return word.toLowerCase();
       }).sort();
   }, []);
@@ -74,7 +92,7 @@ function uniq(arr) {
     return [];
   }
 
-  return reduce(arr, function(acc, ele) {
+  return _.reduce(arr, function(acc, ele) {
     if (acc.indexOf(ele) === -1 && exclusions.indexOf(ele) === -1) {
       acc.push(ele);
     }
