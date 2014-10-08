@@ -1,7 +1,7 @@
 {
   "name": "normalize-keywords",
   "description": "Normalize an array of keywords. Sorts and removes duplicates and common words (uses the 100 most common english words).",
-  "version": "0.1.6",
+  "version": "0.2.1",
   "homepage": "https://github.com/jonschlinkert/normalize-keywords",
   "author": {
     "name": "Jon Schlinkert",
@@ -53,6 +53,7 @@
   ],
   "dependencies": {
     "common-words": "^0.1.3",
+    "inflection": "^1.5.0",
     "lodash": "^2.4.1",
     "unique-words": "0.0.2"
   }

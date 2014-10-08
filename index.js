@@ -7,10 +7,12 @@
 
 'use strict';
 
-var _ = require('lodash');
 var unique = require('unique-words');
 var words = require('common-words');
+var inflection = require('inflection');
 var exclusions = require('./words');
+var _ = require('lodash');
+
 
 module.exports = function(keywords, options) {
   var opts = _.extend({sanitize: true}, options);
@@ -21,16 +23,50 @@ module.exports = function(keywords, options) {
 
   keywords = keywords.concat(opts.add || []);
   var keys = unique(keywords.slice());
-  var omit = exclude(opts.omit);
 
-  keywords = _.difference(keys, omit)
-    .map(changeCase)
-    .filter(Boolean);
-
-  return _.union(keywords, chop(keywords))
-    .sort();
+  return normalize(keys, opts);
 };
 
+/**
+ * Normalize keywords,
+ *
+ * @param  {Array} keywords
+ * @return {Array}
+ */
+
+function normalize(keywords, options) {
+  var opts = _.extend({}, options);
+
+  keywords = _.union(keywords, chop(keywords));
+  var omit = exclude(opts.omit);
+
+  var res = keywords.map(function (keyword, i) {
+    if (options && options.normalize) {
+      return options.normalize(keywords, i, keywords);
+    }
+    if (options.inflect === false) {
+      return keyword;
+    }
+    return properize(keyword);
+  }).sort();
+
+  return _.uniq(_.difference(res, omit));
+}
+
+/**
+ * Make the word lowercase, dashed, and singular.
+ *
+ * @param  {String} `word`
+ * @return {String}
+ */
+
+function properize(word) {
+  if (!/\./.test(word)) {
+    word = changeCase(word);
+    return inflection.singularize(word);
+  }
+  return word;
+}
 
 /**
  * Clone the array and split words by dashes,
@@ -49,12 +85,16 @@ function chop(keywords) {
 }
 
 /**
- * Get an array of the 100 most common english words
+ * Array of the 100 most common english words,
+ * to exclude from the resulting keywords.
+ *
+ * @param  {Array} `omit` Add keywords to omit.
+ * @return {Array}
  */
 
-function exclude(arr) {
+function exclude(omit) {
   var words = exclusions.common;
-  return words.concat(arr || []);
+  return words.concat(omit || []);
 }
 
 /**
@@ -68,12 +108,14 @@ function exclude(arr) {
 function changeCase(str) {
   if (str == null) return '';
   str = String(str);
+  str = str.replace(/\./g, 'zzz')
   str = str.replace(/_/g, '-')
   str = str.replace(/([A-Z]+)/g, function (_, $1) {
-      return '-' + $1.toLowerCase();
-    })
+    return '-' + $1.toLowerCase();
+  });
   str = str.replace(/[^a-z-]+/g, '-')
   str = str.replace(/^[-\s]+|[-\s]+$/g, '');
+  str = str.replace(/zzz/g, '.');
   return str;
 }
 
@@ -86,12 +128,15 @@ function changeCase(str) {
  * @return {Array}
  */
 
-function sanitize(arr) {
-  return _.reduce(arr, function(acc, keywords) {
-    return acc.concat(keywords.split(' ')
-      .filter(Boolean)).map(function(keyword) {
-        return keyword.toLowerCase();
-      }).sort();
+function sanitize(arr, opts) {
+  return _.reduce(arr, function (acc, keywords) {
+    keywords = keywords.split(' ').filter(Boolean);
+    return acc.concat(keywords).map(function (keyword, i) {
+      if (opts && opts.sanitize) {
+        return opts.sanitize(keyword, i, keywords);
+      }
+      return keyword.toLowerCase();
+    }).sort();
   }, []);
 }
 

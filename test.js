@@ -37,4 +37,16 @@ describe('normalize', function () {
     var keywords = ['foo', 'the bar', 'the foo be bar and quux'];
     normalize(keywords, {omit: ['foo']}).should.eql(['bar', 'quux']);
   });
+
+  describe('inflection', function () {
+    it('should singularize words:', function () {
+      var keywords = ['arrays', 'warehouses', 'objects'];
+      normalize(keywords).should.eql(['array', 'object', 'warehouse']);
+    });
+
+    it('should not singularize words when `options.inflect` is `false`:', function () {
+      var keywords = ['arrays', 'warehouses', 'objects'];
+      normalize(keywords, {inflect: false}).should.eql(['arrays', 'objects', 'warehouses']);
+    });
+  });
 });
