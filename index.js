@@ -35,7 +35,7 @@ module.exports = function(keywords, options) {
  */
 
 function normalize(keywords, options) {
-  var opts = _.extend({}, options);
+  var opts = _.extend({inflect: false}, options);
 
   keywords = _.union(keywords, chop(keywords));
   var omit = exclude(opts.omit);
@@ -44,10 +44,7 @@ function normalize(keywords, options) {
     if (options && options.normalize) {
       return options.normalize(keywords, i, keywords);
     }
-    if (options.inflect === false) {
-      return keyword;
-    }
-    return properize(keyword);
+    return properize(keyword, options);
   }).sort();
 
   return _.uniq(_.difference(res, omit));
@@ -60,9 +57,13 @@ function normalize(keywords, options) {
  * @return {String}
  */
 
-function properize(word) {
+function properize(word, options) {
+  options = _.extend({inflect: false}, options);
   if (!/\./.test(word)) {
     word = changeCase(word);
+    if (options.inflect === false) {
+      return word;
+    }
     return inflection.singularize(word);
   }
   return word;

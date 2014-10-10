@@ -41,12 +41,12 @@ describe('normalize', function () {
   describe('inflection', function () {
     it('should singularize words:', function () {
       var keywords = ['arrays', 'warehouses', 'objects'];
-      normalize(keywords).should.eql(['array', 'object', 'warehouse']);
+      normalize(keywords, {inflect: true}).should.eql(['array', 'object', 'warehouse']);
     });
 
-    it('should not singularize words when `options.inflect` is `false`:', function () {
+    it('should not singularize words by default:', function () {
       var keywords = ['arrays', 'warehouses', 'objects'];
-      normalize(keywords, {inflect: false}).should.eql(['arrays', 'objects', 'warehouses']);
+      normalize(keywords).should.eql(['arrays', 'objects', 'warehouses']);
     });
   });
 });
